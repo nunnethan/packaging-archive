@@ -68,6 +68,8 @@ jsDelivr caches files from a branch for up to 12 hours. After each push, the **C
 
 If `items.json` can’t be loaded at all, the site shows the empty mat with no item, rather than an error.
 
+The site checks for a new `items.json` on every visit, but browsers keep images for up to a week. **To replace an image, give the new file a new name** (for example `images/MCDPKG0123-v2-1200.webp`) and update `items.json` to point to it, instead of overwriting the old file.
+
 ## Rights
 
 The photographs are Ethan Nunn’s. This repository is public so the site can load from it; that doesn’t grant permission to reuse the images.
