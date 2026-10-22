@@ -417,8 +417,8 @@ export default function CollectionHome(props: Props) {
                     <a className="ch-link" href={archivePath}>
                         The essay archive →
                     </a>
-                    {/* Under the list and the archive link, so it never moves anything: empty until an essay is hovered or focused. */}
-                    <div className="ch-preview" aria-live="polite">
+                    {/* Under the list and the archive link, so it never moves anything: empty until an essay is hovered or focused, and kept while the pointer is on it. */}
+                    <div className="ch-preview" aria-live="polite" onMouseEnter={stay} onMouseLeave={exit} onFocus={stay} onBlur={exit}>
                         {current && (
                             <div key={current.slug} className="ch-preview-in">
                                 <span className="ch-preview-k">
