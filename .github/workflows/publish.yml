@@ -1,0 +1,29 @@
+# On every push to main: check items.json, then clear jsDelivr's cache for the
+# files that changed, so the website picks up edits within a few minutes
+# instead of waiting up to 12 hours.
+name: Check and publish
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate items.json
+        run: node scripts/validate.mjs
+      - name: Clear jsDelivr cache for changed files
+        if: github.event_name == 'push'
+        run: |
+          git diff --name-only HEAD~1 HEAD -- items.json images/ | while read -r file; do
+            echo "Purging $file"
+            curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/${file}" > /dev/null || echo "Could not purge $file"
+          done
