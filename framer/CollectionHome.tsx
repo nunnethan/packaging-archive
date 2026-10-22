@@ -114,6 +114,7 @@ interface Props {
     essayPath: string
     allPath: string
     archivePath: string
+    stickyTop: number
     paper: string
     ink: string
     muted: string
@@ -133,6 +134,7 @@ export default function CollectionHome(props: Props) {
         essayPath = "/collection/essays/",
         allPath = "/collection/all",
         archivePath = "/collection/essays",
+        stickyTop = 112,
         paper = "#E8E7E3",
         ink = "#161613",
         muted = "#5E5D59",
@@ -146,7 +148,7 @@ export default function CollectionHome(props: Props) {
     const [sheetW, setSheetW] = useState(0)
     const [hl, setHl] = useState<string | null>(null)
     const [bandY, setBandY] = useState<Record<string, number>>({})
-    const [line, setLine] = useState({ left: 0, top: 0, width: 0 })
+    const [line, setLine] = useState({ left: 0, top: 0, width: 0, on: false })
     const root = useRef<HTMLDivElement>(null)
     const wrap = useRef<HTMLDivElement>(null)
     const side = useRef<HTMLElement>(null)
@@ -230,21 +232,44 @@ export default function CollectionHome(props: Props) {
     const stay = () => clear()
     useEffect(() => clear, [])
 
-    // Place the essay's row level with its title, and the line between them.
-    useLayoutEffect(() => {
-        if (!hl || !wide || !wrap.current || !side.current || !sheet.current) return
+    // Where the hovered title sits relative to the page and the selection.
+    const measure = useCallback(() => {
+        if (!hl || !wrap.current || !side.current || !sheet.current) return null
         const title = wrap.current.querySelector(`[data-essay="${hl}"] .ch-t`)
-        if (!title) return
+        if (!title) return null
         const rects = title.getClientRects()
         const last = rects[rects.length - 1]
         const W = wrap.current.getBoundingClientRect()
         const S = sheet.current.getBoundingClientRect()
         const cy = last.top + last.height / 2
-        const y = Math.max(0, Math.round(cy - S.top - H / 2))
         const x0 = side.current.getBoundingClientRect().right + 12
+        return { cy: cy - S.top, line: { left: x0 - W.left, top: cy - W.top, width: Math.max(0, S.left - x0) } }
+    }, [hl])
+
+    // Place the essay's row level with its title, and the line between them.
+    useLayoutEffect(() => {
+        if (!hl || !wide) return
+        const m = measure()
+        if (!m) return
+        const y = Math.max(0, Math.round(m.cy - H / 2))
         setBandY((b) => (b[hl] === y ? b : { ...b, [hl]: y }))
-        setLine({ left: x0 - W.left, top: cy - W.top, width: Math.max(0, S.left - x0) })
-    }, [hl, wide, H])
+        setLine({ ...m.line, on: true })
+    }, [hl, wide, H, measure])
+
+    // The essay list is sticky: while scrolling, the line follows the title and
+    // disappears once the title is no longer level with the essay's row.
+    useEffect(() => {
+        if (!hl || !wide) return
+        const onScroll = () => {
+            const m = measure()
+            if (!m) return
+            const y = bandY[hl] || 0
+            const rows = Math.ceil((order.get(hl) || []).length / cols)
+            setLine({ ...m.line, on: m.cy >= y && m.cy <= y + rows * H })
+        }
+        window.addEventListener("scroll", onScroll, { passive: true })
+        return () => window.removeEventListener("scroll", onScroll)
+    }, [hl, wide, H, cols, bandY, order, measure])
 
     const href = (no: string) => objectPath + encodeURIComponent(no.toLowerCase())
     const vars = { "--ch-paper": paper, "--ch-ink": ink, "--ch-muted": muted, "--ch-rule": rule } as React.CSSProperties
@@ -316,6 +341,24 @@ export default function CollectionHome(props: Props) {
                         )
                     })}
                 </section>
+                {selection.length > 0 && (
+                    <section className="ch-today" aria-labelledby="ch-today">
+                        <h2 id="ch-today" className="ch-head">
+                            Today’s selection
+                        </h2>
+                        <ul className="ch-cards">
+                            {selection
+                                .filter((i) => ![...order.values()].flat().includes(i.no))
+                                .slice(0, 6)
+                                .map((item) => (
+                                    <li key={item.no}>{card(item)}</li>
+                                ))}
+                        </ul>
+                        <a className="ch-more" href={allPath}>
+                            All {itemCount} objects →
+                        </a>
+                    </section>
+                )}
             </div>
         )
     }
@@ -328,12 +371,13 @@ export default function CollectionHome(props: Props) {
     const rows = Math.ceil(selection.length / cols)
     const sheetH = selection.length ? top + rows * H + 1 : 6 * (colW + CARD_TEXT)
     const at = (i: number, y: number) => `translate(${(i % cols) * colW}px, ${y + Math.floor(i / cols) * H}px)`
+    const current = essays.find((e) => e.slug === hl) || essays[0]
 
     return (
         <div ref={root} className="ch" style={{ ...vars, ...props.style }}>
             <style>{CSS}</style>
             <div ref={wrap} className="ch-wrap">
-                <aside ref={side} className="ch-side" aria-labelledby="ch-latest">
+                <aside ref={side} className="ch-side" aria-labelledby="ch-latest" style={{ top: stickyTop }}>
                     <div className="ch-lh">
                         <span>Date</span>
                         <h2 id="ch-latest">Latest essays</h2>
@@ -355,27 +399,35 @@ export default function CollectionHome(props: Props) {
                             <time className="ch-date" dateTime={e.date}>
                                 {formatDate(e.date)}
                             </time>
-                            <span className="ch-body">
-                                <span className="ch-title">
-                                    <span className="ch-t">{e.title}</span>
-                                </span>
-                                {hl === e.slug && (
-                                    <>
-                                        <span className="ch-stand">{e.standfirst}</span>
-                                        <span className="ch-read">
-                                            Read · {e.readingTime} min{e.draft ? " · draft" : ""}
-                                        </span>
-                                    </>
-                                )}
+                            <span className="ch-title">
+                                <span className="ch-t">{e.title}</span>
                             </span>
-                            <span className="ch-r ch-count">{(order.get(e.slug) || []).length}</span>
+                            <span className="ch-r ch-count">
+                                {(order.get(e.slug) || []).length}
+                                <span className="ch-sr"> objects</span>
+                            </span>
                         </a>
                     ))}
+                    {current && (
+                        <div className="ch-preview" aria-live="polite">
+                            <span className="ch-preview-k">
+                                {current.title} · {current.readingTime} min read{current.draft ? " · draft" : ""}
+                            </span>
+                            <p className="ch-stand">{current.standfirst}</p>
+                            <a className="ch-read" href={essayPath + current.slug}>
+                                Read the essay →
+                            </a>
+                        </div>
+                    )}
                     <a className="ch-link" href={archivePath}>
                         The essay archive →
                     </a>
                 </aside>
-                <section className="ch-sec" aria-label="From the collection">
+                <section className="ch-sec" aria-labelledby="ch-today">
+                    <div className="ch-sh">
+                        <h2 id="ch-today">Today’s selection</h2>
+                        <span>{archive ? `${selection.length} of ${itemCount}` : " "}</span>
+                    </div>
                     <ul ref={sheet} className="ch-sheet" style={{ height: sheetH }} onMouseEnter={stay} onMouseLeave={exit} onFocus={stay} onBlur={exit}>
                         {colW > 0 &&
                             selection.map((item, k) => (
@@ -427,7 +479,7 @@ export default function CollectionHome(props: Props) {
                         </li>
                     </ul>
                     <div className="ch-foot">
-                        <span>{archive ? `${selection.length} of ${itemCount} objects, chosen for today.` : " "}</span>
+                        <span>{archive ? "A new selection every day." : " "}</span>
                         <a className="ch-link" href={allPath}>
                             {archive ? `All ${itemCount} objects →` : "All objects →"}
                         </a>
@@ -436,7 +488,7 @@ export default function CollectionHome(props: Props) {
                 <span
                     className="ch-line"
                     aria-hidden="true"
-                    style={{ left: line.left, top: line.top, width: line.width, transform: hl ? "scaleX(1)" : "scaleX(0)", transitionDelay: hl ? "500ms" : "0ms" }}
+                    style={{ left: line.left, top: line.top, width: line.width, transform: hl && line.on ? "scaleX(1)" : "scaleX(0)", transitionDelay: hl && line.on ? "500ms" : "0ms" }}
                 />
             </div>
         </div>
@@ -476,18 +528,26 @@ const CSS = `
 .ch-cell:hover .ch-name { text-decoration: underline; text-decoration-thickness: 1px; }
 
 /* Wide: ledger and selection */
-.ch-wrap { position: relative; display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 48px; align-items: start; }
-.ch-side { display: flex; flex-direction: column; }
+.ch-wrap { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 24px; align-items: start; }
+.ch-side { position: sticky; display: flex; flex-direction: column; }
 .ch-lh { display: grid; grid-template-columns: 88px minmax(0, 1fr) 56px; gap: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--ch-ink); font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ch-muted); }
 .ch-lh h2 { margin: 0; font: inherit; }
 .ch-r { text-align: right; }
 .ch-row { display: grid; grid-template-columns: 88px minmax(0, 1fr) 56px; gap: 16px; align-items: baseline; padding: 16px 0; border-bottom: 1px solid var(--ch-rule); transition: opacity 0.3s cubic-bezier(0.44, 0, 0.56, 1); }
+.ch-row:hover .ch-t { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.ch-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ch-preview { display: flex; flex-direction: column; gap: 8px; min-height: 200px; padding: 16px 0 20px; border-bottom: 1px solid var(--ch-rule); }
+.ch-preview-k { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ch-muted); }
+.ch-preview .ch-stand { margin: 0; }
+.ch-preview .ch-read { align-self: flex-start; }
 .ch-date { font-family: "Literata", Georgia, serif; font-size: 13px; color: var(--ch-muted); font-variant-numeric: oldstyle-nums; }
-.ch-body { display: flex; flex-direction: column; gap: 8px; }
 .ch-title { font-size: 20px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.2; text-wrap: balance; }
 .ch-count { font-size: 13px; font-variant-numeric: tabular-nums; }
 .ch-side > .ch-link { margin-top: 20px; align-self: flex-start; }
-.ch-sec { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.ch-sec { grid-column: 2 / span 2; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.ch-sh { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--ch-ink); font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ch-muted); }
+.ch-sh h2 { margin: 0; font: inherit; }
+.ch-sh span { font-variant-numeric: tabular-nums; }
 .ch-sheet { position: relative; list-style: none; margin: 0; padding: 0; transition: height 0.6s ${EASE}; }
 .ch-li, .ch-slot { position: absolute; top: 0; left: 0; display: flex; }
 .ch-li { transition: transform 0.6s ${EASE}; }
@@ -513,6 +573,7 @@ const CSS = `
 .ch-cards { list-style: none; margin: 4px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .ch-cards li { display: flex; margin: 0 -1px -1px 0; }
 .ch-more { align-self: flex-start; padding: 12px 0; }
+.ch-today { display: flex; flex-direction: column; gap: 12px; margin-top: 32px; }
 
 @media (prefers-reduced-motion: reduce) {
     .ch-sheet, .ch-li, .ch-slot, .ch-copy, .ch-fade, .ch-cap, .ch-line { transition: none !important; }
@@ -526,6 +587,7 @@ addPropertyControls(CollectionHome, {
     essayPath: { type: ControlType.String, title: "Essay path", defaultValue: "/collection/essays/" },
     allPath: { type: ControlType.String, title: "All objects", defaultValue: "/collection/all" },
     archivePath: { type: ControlType.String, title: "Essay archive", defaultValue: "/collection/essays" },
+    stickyTop: { type: ControlType.Number, title: "Sticky top", defaultValue: 112, min: 0, max: 300, step: 1, unit: "px" },
     paper: { type: ControlType.Color, title: "Paper", defaultValue: "#E8E7E3" },
     ink: { type: ControlType.Color, title: "Ink", defaultValue: "#161613" },
     muted: { type: ControlType.Color, title: "Muted", defaultValue: "#5E5D59" },
