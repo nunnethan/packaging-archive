@@ -21,7 +21,7 @@
       ],
       "reading_time": 2,
       "cover": "",
-      "draft": true
+      "draft": false
     },
     {
       "slug": "from-offers-to-origins",
@@ -42,7 +42,7 @@
       ],
       "reading_time": 1,
       "cover": "",
-      "draft": true
+      "draft": false
     },
     {
       "slug": "brown-paper-borrowed-characters",
@@ -63,7 +63,7 @@
       ],
       "reading_time": 1,
       "cover": "",
-      "draft": true
+      "draft": false
     }
   ]
 }

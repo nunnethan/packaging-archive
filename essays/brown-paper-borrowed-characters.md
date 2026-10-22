@@ -4,7 +4,7 @@ date: 2026-10-06
 standfirst: For most of the 1990s, a British McDonald’s bag was either plain kraft paper printed in one colour or a full-colour advert for someone else’s characters.
 objects: MCDPKG0751, MCDPKG0214, MCDPKG0325, MCDPKG0327, MCDPKG0765
 tags: bags, licensing, 1990s
-draft: true
+draft: false
 ---
 <!-- Placeholder text written by Claude from the scans in the archive. Rewrite it in your own words before publishing. -->
 

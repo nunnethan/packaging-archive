@@ -4,7 +4,7 @@ date: 2026-10-14
 standfirst: Tray liners are the largest printed surface a customer handles. Over twenty years, the archive’s liners stop selling deals and start explaining where the food comes from.
 objects: MCDPKG0706, MCDPKG0718, MCDPKG0567, MCDPKG1342, MCDPKG0704
 tags: tray liners, advertising, maps
-draft: true
+draft: false
 ---
 <!-- Placeholder text written by Claude from the scans in the archive. Rewrite it in your own words before publishing. -->
 

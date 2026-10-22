@@ -4,7 +4,7 @@ date: 2026-10-20
 standfirst: The same sandwich, packed in Spain, Poland, Hong Kong, Italy, Belgium, the UK and the USA. Most of the box never changes; the interesting part is what does.
 objects: MCDPKG0037, MCDPKG0829, MCDPKG0647, MCDPKG1177, MCDPKG1334, MCDPKG1018, MCDPKG0123
 tags: comparison, illustration, typography
-draft: true
+draft: false
 ---
 <!-- Placeholder text written by Claude from the scans in the archive. Rewrite it in your own words before publishing. -->
 
