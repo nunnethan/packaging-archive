@@ -207,15 +207,28 @@ export default function CollectionHome(props: Props) {
     const colW = sheetW / cols
     const H = colW + CARD_TEXT
 
-    const enter = (slug: string) => {
+    const hlNow = useRef<string | null>(null)
+    hlNow.current = hl
+    const pending = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const clear = () => {
         if (leave.current) clearTimeout(leave.current)
-        setHl(slug)
+        if (pending.current) clearTimeout(pending.current)
     }
+    // Passing over another essay on the way to the current one's objects
+    // shouldn't take over: switching waits until the pointer rests there.
+    const enter = (slug: string, now = false) => {
+        clear()
+        if (now || !hlNow.current || hlNow.current === slug) setHl(slug)
+        else pending.current = setTimeout(() => setHl(slug), 250)
+    }
+    // Leaving lingers long enough to cross the gap to the essay's row; while
+    // the pointer or focus is in the selection, the current essay stays put.
     const exit = () => {
-        if (leave.current) clearTimeout(leave.current)
-        leave.current = setTimeout(() => setHl(null), 140)
+        clear()
+        leave.current = setTimeout(() => setHl(null), 400)
     }
-    useEffect(() => () => void (leave.current && clearTimeout(leave.current)), [])
+    const stay = () => clear()
+    useEffect(() => clear, [])
 
     // Place the essay's row level with its title, and the line between them.
     useLayoutEffect(() => {
@@ -335,7 +348,7 @@ export default function CollectionHome(props: Props) {
                             data-essay={e.slug}
                             onMouseEnter={() => enter(e.slug)}
                             onMouseLeave={exit}
-                            onFocus={() => enter(e.slug)}
+                            onFocus={() => enter(e.slug, true)}
                             onBlur={exit}
                             style={{ opacity: hl && hl !== e.slug ? 0.35 : 1 }}
                         >
@@ -363,7 +376,7 @@ export default function CollectionHome(props: Props) {
                     </a>
                 </aside>
                 <section className="ch-sec" aria-label="From the collection">
-                    <ul ref={sheet} className="ch-sheet" style={{ height: sheetH }}>
+                    <ul ref={sheet} className="ch-sheet" style={{ height: sheetH }} onMouseEnter={stay} onMouseLeave={exit} onFocus={stay} onBlur={exit}>
                         {colW > 0 &&
                             selection.map((item, k) => (
                                 <li
