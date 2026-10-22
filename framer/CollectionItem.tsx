@@ -113,6 +113,20 @@ type Props = {
  * @framerSupportedLayoutWidth fixed
  * @framerSupportedLayoutHeight auto
  */
+// The site's arrow, as in the image captions: a triangle head on a stem,
+// outlined, 13px with a 2.25 stroke, turned to point where it leads.
+function Arrow({ dir = "right" }: { dir?: "up" | "right" | "down" | "left" }) {
+    const turn = { up: 0, right: 90, down: 180, left: 270 }[dir]
+    return (
+        <svg viewBox="0 0 24 24" width={13} height={13} aria-hidden="true" focusable="false" style={{ display: "inline-block", verticalAlign: "-2px" }}>
+            <g transform={`rotate(${turn} 12 12)`} fill="none" stroke="currentColor" strokeWidth={2.25} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M 0 6.75 L 6.75 0 L 13.5 6.75 Z" transform="translate(5.25 3.75)" />
+                <path d="M 0 9.75 L 0 0" transform="translate(12 10.5)" />
+            </g>
+        </svg>
+    )
+}
+
 export default function CollectionItem(props: Props) {
     const { background, primary, secondary, rule, mat, contentWidth, leftOffset, mobileGutter, itemCount, collectionUrl, objectPath } = props
     const isCanvas = RenderTarget.current() === RenderTarget.canvas
@@ -278,7 +292,7 @@ export default function CollectionItem(props: Props) {
                             </button>
                             {collectionUrl && (
                                 <a className="ci-action" href={collectionUrl}>
-                                    See the collection <span aria-hidden>→</span>
+                                    See the collection <Arrow />
                                 </a>
                             )}
                         </div>

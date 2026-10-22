@@ -127,6 +127,20 @@ interface Props {
     style?: React.CSSProperties
 }
 
+// The site's arrow, as in the image captions: a triangle head on a stem,
+// outlined, 13px with a 2.25 stroke, turned to point where it leads.
+function Arrow({ dir = "right" }: { dir?: "up" | "right" | "down" | "left" }) {
+    const turn = { up: 0, right: 90, down: 180, left: 270 }[dir]
+    return (
+        <svg viewBox="0 0 24 24" width={13} height={13} aria-hidden="true" focusable="false" style={{ display: "inline-block", verticalAlign: "-2px" }}>
+            <g transform={`rotate(${turn} 12 12)`} fill="none" stroke="currentColor" strokeWidth={2.25} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M 0 6.75 L 6.75 0 L 13.5 6.75 Z" transform="translate(5.25 3.75)" />
+                <path d="M 0 9.75 L 0 0" transform="translate(12 10.5)" />
+            </g>
+        </svg>
+    )
+}
+
 /**
  * @framerSupportedLayoutWidth fixed
  * @framerSupportedLayoutHeight auto
@@ -310,11 +324,11 @@ export default function CollectionHome(props: Props) {
                 <style>{CSS}</style>
                 <nav className="ch-go" aria-label="The collection">
                     <a href={allPath}>
-                        <span className="ch-go-t">Full collection →</span>
+                        <span className="ch-go-t">Full collection <Arrow /></span>
                         <span className="ch-go-s">{archive ? `All ${itemCount} objects` : " "}</span>
                     </a>
                     <a href={archivePath}>
-                        <span className="ch-go-t">Essay archive →</span>
+                        <span className="ch-go-t">Essay archive <Arrow /></span>
                         <span className="ch-go-s">{archive ? `${(archive.essays.filter((e) => showDrafts || !e.draft)).length} essays` : " "}</span>
                     </a>
                 </nav>
@@ -342,7 +356,7 @@ export default function CollectionHome(props: Props) {
                                     ))}
                                 </ul>
                                 <a className="ch-more" href={essayPath + e.slug}>
-                                    {more === 0 ? "Read the essay →" : `Read, with ${more} more object${more === 1 ? "" : "s"} →`}
+                                    {more === 0 ? "Read the essay" : `Read, with ${more} more object${more === 1 ? "" : "s"}`} <Arrow />
                                 </a>
                             </article>
                         )
@@ -362,7 +376,7 @@ export default function CollectionHome(props: Props) {
                                 ))}
                         </ul>
                         <a className="ch-more" href={allPath}>
-                            All {itemCount} objects →
+                            All {itemCount} objects <Arrow />
                         </a>
                     </section>
                 )}
@@ -417,7 +431,7 @@ export default function CollectionHome(props: Props) {
                         </a>
                     ))}
                     <a className="ch-link" href={archivePath}>
-                        The essay archive →
+                        The essay archive <Arrow />
                     </a>
                     {/* Under the list and the archive link, so it never moves anything: empty until an essay is hovered or focused, and kept while the pointer is on it. */}
                     <div className="ch-preview" aria-live="polite" onMouseEnter={stay} onMouseLeave={exit} onFocus={stay} onBlur={exit}>
@@ -428,7 +442,7 @@ export default function CollectionHome(props: Props) {
                                 </span>
                                 <p className="ch-stand">{current.standfirst}</p>
                                 <a className="ch-read" href={essayPath + current.slug}>
-                                    Read the essay →
+                                    Read the essay <Arrow />
                                 </a>
                             </div>
                         )}
@@ -492,7 +506,7 @@ export default function CollectionHome(props: Props) {
                     <div className="ch-foot">
                         <span>{archive ? "A new selection every day." : " "}</span>
                         <a className="ch-link" href={allPath}>
-                            {archive ? `All ${itemCount} objects →` : "All objects →"}
+                            {archive ? `All ${itemCount} objects` : "All objects"} <Arrow />
                         </a>
                     </div>
                 </section>

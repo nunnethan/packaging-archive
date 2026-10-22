@@ -97,6 +97,20 @@ interface Props {
     style?: React.CSSProperties
 }
 
+// The site's arrow, as in the image captions: a triangle head on a stem,
+// outlined, 13px with a 2.25 stroke, turned to point where it leads.
+function Arrow({ dir = "right" }: { dir?: "up" | "right" | "down" | "left" }) {
+    const turn = { up: 0, right: 90, down: 180, left: 270 }[dir]
+    return (
+        <svg viewBox="0 0 24 24" width={13} height={13} aria-hidden="true" focusable="false" style={{ display: "inline-block", verticalAlign: "-2px" }}>
+            <g transform={`rotate(${turn} 12 12)`} fill="none" stroke="currentColor" strokeWidth={2.25} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M 0 6.75 L 6.75 0 L 13.5 6.75 Z" transform="translate(5.25 3.75)" />
+                <path d="M 0 9.75 L 0 0" transform="translate(12 10.5)" />
+            </g>
+        </svg>
+    )
+}
+
 /**
  * @framerSupportedLayoutWidth fixed
  * @framerSupportedLayoutHeight auto
@@ -198,7 +212,7 @@ export default function EssayArchive(props: Props) {
                 })}
             </ol>
             <a className="ea-link ea-all" href={allPath}>
-                {archive ? `All ${archive.items.length.toLocaleString("en-GB")} objects →` : "All objects →"}
+                {archive ? `All ${archive.items.length.toLocaleString("en-GB")} objects` : "All objects"} <Arrow />
             </a>
         </div>
     )
