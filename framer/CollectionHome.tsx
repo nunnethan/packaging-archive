@@ -221,12 +221,13 @@ export default function CollectionHome(props: Props) {
         if (leave.current) clearTimeout(leave.current)
         if (pending.current) clearTimeout(pending.current)
     }
-    // Passing over another essay on the way to the current one's objects
-    // shouldn't take over: switching waits until the pointer rests there.
+    // Passing over another essay on the way to the current one's objects or
+    // preview shouldn't take over: switching waits until the pointer stops on
+    // it. Every movement restarts the wait, so moving through never switches.
     const enter = (slug: string, now = false) => {
         clear()
         if (now || !hlNow.current || hlNow.current === slug) setHl(slug)
-        else pending.current = setTimeout(() => setHl(slug), 250)
+        else pending.current = setTimeout(() => setHl(slug), 200)
     }
     // Leaving lingers long enough to cross the gap to the essay's row; while
     // the pointer or focus is in the selection, the current essay stays put.
@@ -397,6 +398,7 @@ export default function CollectionHome(props: Props) {
                             href={essayPath + e.slug}
                             data-essay={e.slug}
                             onMouseEnter={() => enter(e.slug)}
+                            onMouseMove={() => enter(e.slug)}
                             onMouseLeave={exit}
                             onFocus={() => enter(e.slug, true)}
                             onBlur={exit}
