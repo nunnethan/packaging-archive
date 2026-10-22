@@ -272,7 +272,7 @@ export default function ObjectDetail(props: Props) {
 }
 
 const CSS = `
-.od { container-type: inline-size; width: 100%; color: var(--od-ink); background: var(--od-paper); font-family: "IBM Plex Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.od { container-type: inline-size; width: 100%; color: var(--od-ink); background: var(--od-paper); font-family: "IBM Plex Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; }
 .od *, .od *::before, .od *::after { box-sizing: border-box; }
 .od a { color: inherit; text-decoration: none; }
 .od :focus-visible { outline: 2px solid var(--od-ink); outline-offset: 3px; }
@@ -290,7 +290,7 @@ const CSS = `
 .od-fact { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 16px; border-top: 1px solid var(--od-rule); padding: 9px 0; }
 .od-fact:last-child { border-bottom: 1px solid var(--od-rule); }
 .od-fact dt { font-size: 12px; font-weight: 500; line-height: 1.7; letter-spacing: 0.06em; text-transform: uppercase; color: var(--od-muted); }
-.od-fact dd { margin: 0; font-family: "Literata", Georgia, serif; font-size: 16px; line-height: 1.5; color: var(--od-ink); font-variant-numeric: oldstyle-nums; }
+.od-fact dd { margin: 0; font-family: "Literata", Georgia, serif; font-size: 16px; line-height: 1.5; color: var(--od-ink); font-variant-numeric: tabular-nums; }
 .od-notes { margin: 8px 0 0; font-family: "Literata", Georgia, serif; font-size: 17px; line-height: 1.6; color: #2b2a27; max-width: 34em; text-wrap: pretty; }
 .od-notes a { text-decoration: underline; text-underline-offset: 3px; }
 .od-missing { display: grid; gap: 12px; border-top: 1px solid var(--od-rule); padding-top: 24px; }
@@ -299,7 +299,7 @@ const CSS = `
 .od-essays a { display: grid; gap: 2px; }
 .od-essay-title { font-size: 19px; font-weight: 600; line-height: 1.25; letter-spacing: -0.03em; text-decoration: underline; text-decoration-thickness: 1px; text-decoration-color: var(--od-rule); text-underline-offset: 4px; transition: text-decoration-color 0.2s cubic-bezier(0.44, 0, 0.56, 1); }
 .od-essays a:hover .od-essay-title { text-decoration-color: var(--od-ink); }
-.od-essay-meta { font-family: "Literata", Georgia, serif; font-size: 14px; color: var(--od-muted); font-variant-numeric: oldstyle-nums; }
+.od-essay-meta { font-family: "Literata", Georgia, serif; font-size: 14px; color: var(--od-muted); font-variant-numeric: tabular-nums; }
 .od-pager { display: flex; justify-content: space-between; gap: 24px; border-top: 1px solid var(--od-rule); margin-top: 48px; padding-top: 16px; }
 .od-pager a { display: grid; gap: 2px; min-width: 0; }
 .od-next { text-align: right; }

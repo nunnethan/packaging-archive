@@ -371,7 +371,7 @@ export default function CollectionHome(props: Props) {
     const rows = Math.ceil(selection.length / cols)
     const sheetH = selection.length ? top + rows * H + 1 : 6 * (colW + CARD_TEXT)
     const at = (i: number, y: number) => `translate(${(i % cols) * colW}px, ${y + Math.floor(i / cols) * H}px)`
-    const current = essays.find((e) => e.slug === hl) || essays[0]
+    const current = essays.find((e) => e.slug === hl)
 
     return (
         <div ref={root} className="ch" style={{ ...vars, ...props.style }}>
@@ -408,20 +408,23 @@ export default function CollectionHome(props: Props) {
                             </span>
                         </a>
                     ))}
-                    {current && (
-                        <div className="ch-preview" aria-live="polite">
-                            <span className="ch-preview-k">
-                                {current.title} · {current.readingTime} min read{current.draft ? " · draft" : ""}
-                            </span>
-                            <p className="ch-stand">{current.standfirst}</p>
-                            <a className="ch-read" href={essayPath + current.slug}>
-                                Read the essay →
-                            </a>
-                        </div>
-                    )}
                     <a className="ch-link" href={archivePath}>
                         The essay archive →
                     </a>
+                    {/* Under the list and the archive link, so it never moves anything: empty until an essay is hovered or focused. */}
+                    <div className="ch-preview" aria-live="polite">
+                        {current && (
+                            <div key={current.slug} className="ch-preview-in">
+                                <span className="ch-preview-k">
+                                    {current.title} · {current.readingTime} min read{current.draft ? " · draft" : ""}
+                                </span>
+                                <p className="ch-stand">{current.standfirst}</p>
+                                <a className="ch-read" href={essayPath + current.slug}>
+                                    Read the essay →
+                                </a>
+                            </div>
+                        )}
+                    </div>
                 </aside>
                 <section className="ch-sec" aria-labelledby="ch-today">
                     <div className="ch-sh">
@@ -536,14 +539,16 @@ const CSS = `
 .ch-row { display: grid; grid-template-columns: 88px minmax(0, 1fr) 56px; gap: 16px; align-items: baseline; padding: 16px 0; border-bottom: 1px solid var(--ch-rule); transition: opacity 0.3s cubic-bezier(0.44, 0, 0.56, 1); }
 .ch-row:hover .ch-t { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .ch-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.ch-preview { display: flex; flex-direction: column; gap: 8px; min-height: 200px; padding: 16px 0 20px; border-bottom: 1px solid var(--ch-rule); }
+.ch-preview { padding: 20px 0 0; }
+.ch-preview-in { display: flex; flex-direction: column; gap: 8px; animation: ch-in 0.3s cubic-bezier(0.44, 0, 0.56, 1); }
+@keyframes ch-in { from { opacity: 0; } to { opacity: 1; } }
 .ch-preview-k { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ch-muted); }
 .ch-preview .ch-stand { margin: 0; }
 .ch-preview .ch-read { align-self: flex-start; }
 .ch-date { font-family: "Literata", Georgia, serif; font-size: 13px; color: var(--ch-muted); font-variant-numeric: oldstyle-nums; }
 .ch-title { font-size: 20px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.2; text-wrap: balance; }
 .ch-count { font-size: 13px; font-variant-numeric: tabular-nums; }
-.ch-side > .ch-link { margin-top: 20px; align-self: flex-start; }
+.ch-side > .ch-link { margin-top: 16px; align-self: flex-start; }
 .ch-sec { grid-column: 2 / span 2; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .ch-sh { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--ch-ink); font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ch-muted); }
 .ch-sh h2 { margin: 0; font: inherit; }
@@ -577,6 +582,7 @@ const CSS = `
 
 @media (prefers-reduced-motion: reduce) {
     .ch-sheet, .ch-li, .ch-slot, .ch-copy, .ch-fade, .ch-cap, .ch-line { transition: none !important; }
+    .ch-preview-in { animation: none; }
 }
 `
 
