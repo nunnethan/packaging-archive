@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Essays – Collection editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400;1,7..72,600&display=swap">
+<link rel="stylesheet" href="/lib/essay.css">
+<style>
+:root {
+    --paper: #e8e7e3; --sheet: #f3f2ef; --ink: #161613; --muted: #5e5d59; --rule: #c6c4be; --black: #000; --white: #f2f2f2; --accent: #161613; --error: #9b2c2c; --ok: #2f6b3a;
+    --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--sans); -webkit-font-smoothing: antialiased; display: grid; grid-template-columns: 280px minmax(0, 1fr); }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.side { background: var(--black); color: var(--white); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; height: 100vh; position: sticky; top: 0; }
+.side h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+.side p { margin: 0; color: #999; font-size: 13px; }
+.new { background: var(--white); color: var(--black); border: 0; padding: 8px 12px; font-weight: 600; text-align: left; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.list button { width: 100%; text-align: left; background: none; border: 0; padding: 8px 10px; color: var(--white); display: grid; gap: 2px; }
+.list button[aria-current="true"] { background: #222; }
+.list button:hover { background: #1a1a1a; }
+.list .t { font-weight: 600; letter-spacing: -0.02em; }
+.list .m { font-size: 12px; color: #999; }
+.badge { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid #666; color: #bbb; padding: 0 4px; margin-left: 6px; vertical-align: 1px; }
+.badge.live { border-color: #8fc79b; color: #8fc79b; }
+.publish { margin-top: auto; display: grid; gap: 8px; border-top: 1px solid #333; padding-top: 16px; }
+.publish button { background: none; border: 1px solid var(--white); color: var(--white); padding: 8px 12px; font-weight: 600; }
+.publish .changes { font-size: 12px; color: #999; white-space: pre-wrap; font-family: var(--mono); max-height: 120px; overflow: auto; }
+main { min-width: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100vh; }
+.bar { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--rule); background: var(--paper); flex-wrap: wrap; }
+.bar .status { margin-right: auto; font-size: 13px; color: var(--muted); }
+.bar .status.err { color: var(--error); }
+.bar .status.ok { color: var(--ok); }
+.bar button { border: 1px solid var(--ink); background: none; padding: 6px 12px; font-weight: 600; }
+.bar button.primary { background: var(--ink); color: var(--paper); }
+.bar button.danger { border-color: var(--error); color: var(--error); }
+.panes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 0; }
+.write { overflow-y: auto; padding: 20px; display: grid; gap: 14px; align-content: start; border-right: 1px solid var(--rule); }
+.preview { overflow-y: auto; padding: 32px 32px 80px; background: var(--paper); }
+label { display: grid; gap: 4px; font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+label small { text-transform: none; letter-spacing: 0; font-weight: 400; }
+input[type=text], input[type=date], textarea { background: var(--sheet); border: 1px solid var(--rule); padding: 8px 10px; text-transform: none; letter-spacing: 0; color: var(--ink); font-size: 15px; width: 100%; }
+textarea { resize: vertical; }
+#title { font-size: 22px; font-weight: 600; letter-spacing: -0.03em; }
+#body { font: 15px/1.65 var(--mono); min-height: 60vh; tab-size: 4; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.check { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; font-size: 15px; color: var(--ink); font-weight: 500; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; text-transform: none; letter-spacing: 0; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--sheet); border: 1px solid var(--rule); padding: 2px 4px 2px 8px; font-size: 13px; color: var(--ink); }
+.chip button { border: 0; background: none; padding: 0 4px; color: var(--muted); }
+.tools { display: flex; gap: 6px; flex-wrap: wrap; }
+.tools button { border: 1px solid var(--rule); background: var(--sheet); padding: 4px 10px; font-size: 13px; }
+.picker { position: relative; }
+.results { position: absolute; z-index: 5; left: 0; right: 0; top: 100%; background: var(--sheet); border: 1px solid var(--ink); max-height: 320px; overflow-y: auto; margin: 0; padding: 0; list-style: none; }
+.results li button { width: 100%; display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: center; text-align: left; background: none; border: 0; padding: 6px 8px; text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--ink); }
+.results li button:hover, .results li button:focus-visible { background: var(--paper); }
+.results img { width: 40px; height: 40px; object-fit: contain; mix-blend-mode: multiply; }
+.results .n { font-weight: 600; font-size: 13px; }
+.results .d { font-size: 12px; color: var(--muted); }
+.cover { display: flex; gap: 12px; align-items: center; text-transform: none; letter-spacing: 0; }
+.cover img { width: 120px; height: 80px; object-fit: cover; border: 1px solid var(--rule); }
+.help { font-size: 13px; color: var(--muted); line-height: 1.6; border-top: 1px solid var(--rule); padding-top: 12px; }
+.help code { font-family: var(--mono); font-size: 12px; background: var(--sheet); padding: 1px 4px; }
+.problems { margin: 0; padding: 10px 12px 10px 28px; border: 1px solid var(--error); color: var(--error); font-size: 13px; }
+.empty { padding: 40px; color: var(--muted); }
+@media (max-width: 1100px) { .panes { grid-template-columns: 1fr; } .write { border-right: 0; border-bottom: 1px solid var(--rule); } }
+@media (max-width: 760px) { body { grid-template-columns: 1fr; } .side { height: auto; position: static; } main { height: auto; } }
+</style>
+</head>
+<body>
+<nav class="side" aria-label="Essays">
+    <div>
+        <h1>Collection essays</h1>
+        <p>Saved to the packaging-archive repository on this Mac.</p>
+    </div>
+    <button class="new" id="new" type="button">+ New essay</button>
+    <ul class="list" id="list"></ul>
+    <div class="publish">
+        <button id="publish" type="button">Publish to the site</button>
+        <p>Commits your saved changes and pushes them to GitHub. Essays marked as drafts stay hidden.</p>
+        <div class="changes" id="changes"></div>
+    </div>
+</nav>
+<main>
+    <div class="bar">
+        <span class="status" id="status" role="status" aria-live="polite">Loading…</span>
+        <button id="delete" class="danger" type="button">Delete</button>
+        <button id="save" class="primary" type="button">Save <span aria-hidden="true">⌘S</span></button>
+    </div>
+    <div class="panes">
+        <form class="write" id="form" autocomplete="off">
+            <label>Title <input type="text" id="title" required></label>
+            <div class="row">
+                <label>Address <small>typen.me/collection/essays/…</small><input type="text" id="slug" required pattern="[a-z0-9]+(-[a-z0-9]+)*"></label>
+                <label>Date <input type="date" id="date" required></label>
+            </div>
+            <label>Standfirst <small>one or two sentences under the title</small><textarea id="standfirst" rows="2"></textarea></label>
+            <label class="check"><input type="checkbox" id="draft"> Draft (hidden on the site)</label>
+            <div class="picker">
+                <label>Related objects <small>shown at the end of the essay and linked from each object</small>
+                    <input type="text" id="objectSearch" placeholder="Search by name, number, type, country or year" aria-controls="objectResults" aria-autocomplete="list">
+                </label>
+                <ul class="results" id="objectResults" hidden></ul>
+            </div>
+            <div class="chips" id="objects" aria-label="Related objects"></div>
+            <label>Tags <small>separated by commas</small><input type="text" id="tags"></label>
+            <div class="cover">
+                <img id="coverImg" alt="" hidden>
+                <label style="flex:1">Cover image <small>optional</small><input type="file" id="coverFile" accept="image/*"></label>
+            </div>
+            <label>Cover description <small>alt text, for people who can’t see the image</small><input type="text" id="coverAlt"></label>
+            <div class="tools" role="toolbar" aria-label="Insert">
+                <button type="button" data-insert="card">Object card</button>
+                <button type="button" data-insert="ref">Object link</button>
+                <button type="button" data-insert="note">Note</button>
+                <button type="button" data-insert="em">Italic</button>
+                <button type="button" data-insert="h2">Heading</button>
+                <button type="button" data-insert="quote">Quote</button>
+            </div>
+            <label>Essay <textarea id="body" spellcheck="true"></textarea></label>
+            <div class="help">
+                Write in Markdown. Leave a blank line between paragraphs. <code>*italic*</code>, <code>**bold**</code>, <code>## Heading</code>, <code>&gt; quote</code>, <code>[words](https://…)</code>.<br>
+                <code>[[MCDPKG0747]]</code> on its own line shows an object card; inside a sentence it links to the object (<code>[[MCDPKG0747|the fry box]]</code> to choose the words).<br>
+                Notes: <code>[^1]</code> in the text and <code>[^1]: The note.</code> on its own line. They appear in the margin on wide screens.<br>
+                Straight quotes, <code>--</code> and <code>...</code> become curly quotes, dashes and ellipses automatically.
+            </div>
+        </form>
+        <section class="preview" aria-label="Preview">
+            <article class="essay" id="preview"></article>
+        </section>
+    </div>
+</main>
+<script type="module" src="/app.js"></script>
+</body>
+</html>

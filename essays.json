@@ -1,0 +1,69 @@
+{
+  "essays": [
+    {
+      "slug": "seven-boxes-one-burger",
+      "title": "Seven boxes, one burger",
+      "date": "2026-10-20",
+      "standfirst": "The same sandwich, packed in Spain, Poland, Hong Kong, Italy, Belgium, the UK and the USA. Most of the box never changes; the interesting part is what does.",
+      "objects": [
+        "MCDPKG0037",
+        "MCDPKG0829",
+        "MCDPKG0647",
+        "MCDPKG1177",
+        "MCDPKG1334",
+        "MCDPKG1018",
+        "MCDPKG0123"
+      ],
+      "tags": [
+        "comparison",
+        "illustration",
+        "typography"
+      ],
+      "reading_time": 2,
+      "cover": "",
+      "draft": true
+    },
+    {
+      "slug": "from-offers-to-origins",
+      "title": "From offers to origins",
+      "date": "2026-10-14",
+      "standfirst": "Tray liners are the largest printed surface a customer handles. Over twenty years, the archive’s liners stop selling deals and start explaining where the food comes from.",
+      "objects": [
+        "MCDPKG0706",
+        "MCDPKG0718",
+        "MCDPKG0567",
+        "MCDPKG1342",
+        "MCDPKG0704"
+      ],
+      "tags": [
+        "tray liners",
+        "advertising",
+        "maps"
+      ],
+      "reading_time": 1,
+      "cover": "",
+      "draft": true
+    },
+    {
+      "slug": "brown-paper-borrowed-characters",
+      "title": "Brown paper, borrowed characters",
+      "date": "2026-10-06",
+      "standfirst": "For most of the 1990s, a British McDonald’s bag was either plain kraft paper printed in one colour or a full-colour advert for someone else’s characters.",
+      "objects": [
+        "MCDPKG0751",
+        "MCDPKG0214",
+        "MCDPKG0325",
+        "MCDPKG0327",
+        "MCDPKG0765"
+      ],
+      "tags": [
+        "bags",
+        "licensing",
+        "1990s"
+      ],
+      "reading_time": 1,
+      "cover": "",
+      "draft": true
+    }
+  ]
+}

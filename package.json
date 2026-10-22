@@ -1,0 +1,14 @@
+{
+  "name": "packaging-archive",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "editor": "node scripts/editor.mjs",
+    "check": "node scripts/build-index.mjs && node scripts/validate.mjs",
+    "sync": "node scripts/sync-framer.mjs"
+  },
+  "dependencies": {
+    "framer-api": "5.1.0"
+  }
+}

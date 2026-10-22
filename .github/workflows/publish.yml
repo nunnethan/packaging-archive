@@ -1,12 +1,21 @@
-# On every push to main: check items.json, then clear jsDelivr's cache for the
-# files that changed, so the website picks up edits within a few minutes
-# instead of waiting up to 12 hours.
+# On every push to main: rebuild essays.json, check everything, clear
+# jsDelivr's cache for the files that changed (so the site sees edits within
+# minutes, not 12 hours), then copy the archive into the Framer CMS and
+# publish typen.me if anything there changed.
 name: Check and publish
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
 
 jobs:
   check:
@@ -17,13 +26,36 @@ jobs:
           fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - name: Validate items.json
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Rebuild essays.json
+        run: node scripts/build-index.mjs
+      - name: Check items.json and the essays
         run: node scripts/validate.mjs
-      - name: Clear jsDelivr cache for changed files
-        if: github.event_name == 'push'
+      - name: Commit essays.json if it changed
+        if: github.event_name != 'pull_request'
         run: |
-          git diff --name-only HEAD~1 HEAD -- items.json images/ | while read -r file; do
+          if ! git diff --quiet -- essays.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Rebuild essays.json" -- essays.json
+            git push
+          fi
+      - name: Clear jsDelivr cache for changed files
+        if: github.event_name != 'pull_request'
+        run: |
+          { git diff --name-only HEAD~1 HEAD -- items.json essays.json images/ 2>/dev/null; git diff --name-only HEAD~2 HEAD~1 -- essays.json 2>/dev/null; } | sort -u | while read -r file; do
             echo "Purging $file"
             curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/${file}" > /dev/null || echo "Could not purge $file"
           done
+      - name: Sync to Framer and publish
+        if: github.event_name != 'pull_request'
+        env:
+          FRAMER_API_KEY: ${{ secrets.FRAMER_API_KEY }}
+        run: |
+          if [ -z "$FRAMER_API_KEY" ]; then
+            echo "::notice::FRAMER_API_KEY isn't set, so object and essay pages weren't updated. See the README."
+            exit 0
+          fi
+          node scripts/sync-framer.mjs --publish
