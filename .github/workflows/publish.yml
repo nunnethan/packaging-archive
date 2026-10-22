@@ -1,4 +1,5 @@
-# On every push to main: rebuild essays.json, check everything, clear
+# On every push to main: rebuild essays.json, check everything, copy the
+# archive to media.typen.me (Cloudflare R2), clear
 # jsDelivr's cache for the files that changed (so the site sees edits within
 # minutes, not 12 hours), then copy the archive into the Framer CMS and
 # publish typen.me if anything there changed.
@@ -42,6 +43,31 @@ jobs:
             git commit -m "Rebuild essays.json" -- essays.json
             git push
           fi
+      - name: Copy the archive to media.typen.me
+        if: github.event_name != 'pull_request'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          AWS_DEFAULT_REGION: auto
+          # R2 doesn't accept the newer default checksums the AWS CLI sends
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+        run: |
+          if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$R2_ACCOUNT_ID" ]; then
+            echo "::notice::The R2 keys aren't set, so media.typen.me wasn't updated. See the README."
+            exit 0
+          fi
+          r2() { aws s3 "$@" --endpoint-url "https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com" --only-show-errors; }
+          # Images keep their names when unchanged, so a day's caching is safe;
+          # the two indexes change often, so they're cached for a minute.
+          r2 sync images/ s3://typen-media/collection/images/ --delete --exclude "*" --include "*.webp" \
+            --content-type image/webp --cache-control "public, max-age=86400"
+          for file in items.json essays.json; do
+            r2 cp "$file" "s3://typen-media/collection/$file" --content-type "application/json; charset=utf-8" \
+              --cache-control "public, max-age=60"
+          done
+          echo "media.typen.me/collection is up to date: $(ls images/*.webp | wc -l) images, items.json and essays.json."
       - name: Clear jsDelivr cache for changed files
         if: github.event_name != 'pull_request'
         run: |
