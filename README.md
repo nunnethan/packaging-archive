@@ -61,7 +61,7 @@ You can also edit `items.json` straight on GitHub. Uploading images through GitH
 The site loads `items.json` and the images through [jsDelivr](https://www.jsdelivr.com), a free CDN for public GitHub repositories:
 
 ```
-https://cdn.jsdelivr.net/gh/<github-user>/packaging-archive@main/items.json
+https://cdn.jsdelivr.net/gh/nunnethan/packaging-archive@main/items.json
 ```
 
 jsDelivr caches files from a branch for up to 12 hours. After each push, the **Check and publish** GitHub Action validates `items.json` and clears jsDelivr’s cache for the files that changed, so edits usually appear within a few minutes. If the check fails (look for a red cross on the commit), fix `items.json` and push again; the site keeps showing what it last loaded successfully until the cache is cleared.
