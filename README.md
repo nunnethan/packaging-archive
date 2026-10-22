@@ -11,7 +11,7 @@ Items from Ethan Nunn’s archive of printed fast-food packaging, their photogra
 - `scripts/validate.mjs`: checks `items.json` and the essays for mistakes.
 - `scripts/add-image.sh`: makes the two web images from an original photo.
 - `scripts/sync-framer.mjs`: copies the essays into the Framer CMS, which gives each essay its own page.
-- `framer/`: the Framer code components, for reference (CollectionRegister, ObjectDetail, EssayBody).
+- `framer/`: the Framer code components, for reference (CollectionHome, CollectionRegister, EssayArchive, ObjectDetail, EssayBody).
 
 ## items.json
 
