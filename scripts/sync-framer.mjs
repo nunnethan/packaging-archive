@@ -1,4 +1,4 @@
-// Copies items.json and the essays into the Framer CMS (Objects and Essays),
+// Copies the essays into the Framer CMS (the Essays collection),
 // then, with --publish, publishes typen.me if anything changed.
 // Needs a Framer API key: FRAMER_API_KEY=… node scripts/sync-framer.mjs --publish
 // (Framer › Site settings › API Keys). The GitHub Action runs this after each push.
@@ -12,7 +12,7 @@ const dryRun = process.argv.includes("--dry-run")
 
 const records = buildRecords({ items: loadItems().items, essays: loadEssays(), cdn: CDN })
 if (dryRun) {
-    console.log(`${records.objects.length} objects, ${records.essays.length} essays ready to sync (dry run, nothing sent).`)
+    console.log(`${records.essays.length} essays ready to sync (dry run, nothing sent).`)
     process.exit(0)
 }
 if (!process.env.FRAMER_API_KEY) {

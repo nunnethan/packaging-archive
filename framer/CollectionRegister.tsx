@@ -110,7 +110,7 @@ interface Props {
  * @framerSupportedLayoutHeight auto
  */
 export default function CollectionRegister(props: Props) {
-    const { objectPath = "/collection/", essayPath = "/collection/essays/", paper = "#E8E7E3", ink = "#161613", muted = "#5E5D59", rule = "#C6C4BE" } = props
+    const { objectPath = "/collection/object?no=", essayPath = "/collection/essays/", paper = "#E8E7E3", ink = "#161613", muted = "#5E5D59", rule = "#C6C4BE" } = props
     const [archive, setArchive] = useState<Archive | null>(null)
     const [failed, setFailed] = useState(false)
     const [filters, setFilters] = useState<Filters>(DEFAULTS)
@@ -465,7 +465,7 @@ const CSS = `
 `
 
 addPropertyControls(CollectionRegister, {
-    objectPath: { type: ControlType.String, title: "Object path", defaultValue: "/collection/" },
+    objectPath: { type: ControlType.String, title: "Object path", defaultValue: "/collection/object?no=" },
     essayPath: { type: ControlType.String, title: "Essay path", defaultValue: "/collection/essays/" },
     paper: { type: ControlType.Color, title: "Paper", defaultValue: "#E8E7E3" },
     ink: { type: ControlType.Color, title: "Ink", defaultValue: "#161613" },

@@ -66,7 +66,7 @@ interface Props {
 export default function EssayBody(props: Props) {
     const { record = "", collectionPath = "/collection" } = props
     const data = useMemo(() => parse(record) || SAMPLE, [record])
-    const objectHref = (no: string) => `${collectionPath}/${no.toLowerCase()}`
+    const objectHref = (no: string) => `${collectionPath}/object?no=${no.toLowerCase()}`
 
     return (
         <article className="essay" style={{ ...props.style, position: "relative" }} lang="en-GB">

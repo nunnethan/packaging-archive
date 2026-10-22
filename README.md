@@ -10,7 +10,7 @@ Items from Ethan Nunn’s archive of printed fast-food packaging, their photogra
 - `editor/` and `scripts/editor.mjs`: a local editor for the essays (`npm run editor`).
 - `scripts/validate.mjs`: checks `items.json` and the essays for mistakes.
 - `scripts/add-image.sh`: makes the two web images from an original photo.
-- `scripts/sync-framer.mjs`: copies everything into the Framer CMS, which gives each object and essay its own page.
+- `scripts/sync-framer.mjs`: copies the essays into the Framer CMS, which gives each essay its own page.
 - `framer/`: the Framer code components, for reference (CollectionRegister, ObjectDetail, EssayBody).
 
 ## items.json
@@ -92,12 +92,12 @@ https://cdn.jsdelivr.net/gh/nunnethan/packaging-archive@main/items.json
 
 jsDelivr caches files from a branch for up to 12 hours. After each push, the **Check and publish** GitHub Action rebuilds `essays.json`, validates everything and clears jsDelivr’s cache for the files that changed, so edits usually appear within a few minutes.
 
-Object and essay pages live in the Framer CMS (the Objects and Essays collections). The same Action copies the repository into them and publishes typen.me when something changed. Don’t edit those collections in Framer: the next sync overwrites them. The Action needs a Framer API key, stored once as a repository secret:
+Object pages (`/collection/object?no=mcdpkg0747`) read `items.json` directly, so they update with the grid. Essay pages live in the Framer CMS, in the Essays collection; the site’s plan allows two CMS collections, and the other is Projects. The same Action copies the essays into that collection and publishes typen.me when something changed. Don’t edit the Essays collection in Framer: the next sync overwrites it. The Action needs a Framer API key, stored once as a repository secret:
 
 1. In Framer, open Site settings › API Keys and create a key.
 2. Run `gh secret set FRAMER_API_KEY -R nunnethan/packaging-archive` and paste the key.
 
-Without the key, the Collection grid still updates, but object and essay pages don’t. You can also sync by hand: `FRAMER_API_KEY=… npm run sync -- --publish`. Publishing puts any other unpublished Framer changes live too. If the check fails (look for a red cross on the commit), fix the problem and push again; the site keeps showing what it last loaded successfully until the cache is cleared.
+Without the key, the Collection grid and object pages still update, but essay pages don’t. You can also sync by hand: `FRAMER_API_KEY=… npm run sync -- --publish`. Publishing puts any other unpublished Framer changes live too. If the check fails (look for a red cross on the commit), fix the problem and push again; the site keeps showing what it last loaded successfully until the cache is cleared.
 
 If `items.json` can’t be loaded at all, the site shows the empty mat with no item, rather than an error.
 
