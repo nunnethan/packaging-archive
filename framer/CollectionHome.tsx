@@ -84,6 +84,11 @@ function metaLine(item: Item) {
     return [item.type, item.country, item.year || "undated"].filter(Boolean).join(" · ")
 }
 
+// The card shows the type on the image's mat, so its own line is place and date.
+function placeLine(item: Item) {
+    return [item.country, item.year || "undated"].filter(Boolean).join(" · ")
+}
+
 function formatDate(iso: string) {
     const d = new Date(iso + "T12:00:00Z")
     return isNaN(+d) ? iso : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })
@@ -282,12 +287,13 @@ export default function CollectionHome(props: Props) {
             aria-hidden={extra?.hidden || undefined}
             tabIndex={extra?.hidden ? -1 : undefined}
         >
-            <span className="ch-no">{item.no}</span>
             <span className="ch-mat">
+                <span className="ch-tag ch-tag-no">{item.no}</span>
                 <img src={item.srcSmall} srcSet={`${item.srcSmall} 600w, ${item.src} 1200w`} sizes="(max-width: 839px) 45vw, 180px" alt="" loading="lazy" decoding="async" />
+                <span className="ch-tag ch-tag-type">{item.type}</span>
             </span>
             <span className="ch-name">{item.name}</span>
-            <span className="ch-meta">{metaLine(item)}</span>
+            <span className="ch-meta">{placeLine(item)}</span>
         </a>
     )
 
@@ -520,12 +526,14 @@ const CSS = `
 .ch-stand { font-family: "Literata", Georgia, serif; font-size: 15px; line-height: 1.5; font-variant-numeric: oldstyle-nums; }
 
 /* Cards: the same as the register's */
-.ch-cell { display: grid; grid-template-rows: auto auto auto auto; align-content: start; gap: 4px; width: 100%; height: 100%; padding: 10px 10px 12px; border: 1px solid var(--ch-rule); background: var(--ch-paper); min-width: 0; overflow: hidden; }
-.ch-no { font-size: 11px; line-height: 1.4; letter-spacing: 0.03em; color: var(--ch-muted); font-variant-numeric: tabular-nums; }
+.ch-cell { display: grid; grid-template-rows: auto auto auto; align-content: start; gap: 3px; width: 100%; height: 100%; padding: 10px 10px 12px; border: 1px solid var(--ch-rule); background: var(--ch-paper); min-width: 0; overflow: hidden; }
 .ch-mat { position: relative; display: block; aspect-ratio: 1; overflow: hidden; }
-.ch-mat img { position: absolute; inset: 7%; width: 86%; height: 86%; object-fit: contain; mix-blend-mode: multiply; transition: transform 0.2s cubic-bezier(0.44, 0, 0.56, 1); }
+.ch-mat img { position: absolute; inset: 15% 7%; width: 86%; height: 70%; object-fit: contain; mix-blend-mode: multiply; transition: transform 0.2s cubic-bezier(0.44, 0, 0.56, 1); }
 .ch-name, .ch-meta { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ch-name { font-size: 13px; font-weight: 600; line-height: 1.35; letter-spacing: -0.02em; text-underline-offset: 3px; }
+.ch-name { font-size: 13px; font-weight: 600; line-height: 1.3; letter-spacing: -0.02em; text-underline-offset: 3px; white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; height: 2.6em; }
+.ch-tag { position: absolute; left: 0; max-width: 100%; font-size: 10px; line-height: 1.3; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ch-muted); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-tag-no { top: 0; }
+.ch-tag-type { bottom: 0; }
 .ch-meta { font-family: "Literata", Georgia, serif; font-size: 12px; line-height: 1.45; color: var(--ch-muted); font-variant-numeric: oldstyle-nums; }
 .ch-cell:hover .ch-mat img { transform: scale(1.04); }
 .ch-cell:hover .ch-name { text-decoration: underline; text-decoration-thickness: 1px; }

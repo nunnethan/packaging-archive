@@ -76,6 +76,11 @@ function metaLine(item: Item) {
     return [item.type, item.country, item.year || "undated"].filter(Boolean).join(" · ")
 }
 
+// The card shows the type on the image's mat, so its own line is place and date.
+function placeLine(item: Item) {
+    return [item.country, item.year || "undated"].filter(Boolean).join(" · ")
+}
+
 function formatDate(iso: string) {
     const d = new Date(iso + "T12:00:00Z")
     return isNaN(+d) ? iso : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })
@@ -176,12 +181,13 @@ export default function EssayArchive(props: Props) {
                                     {objs.map((item) => (
                                         <li key={item.no}>
                                             <a className="ea-cell" href={href(item.no)} aria-label={`${item.name}, ${metaLine(item)}${item.edition ? `, ${item.edition}` : ""}`}>
-                                                <span className="ea-no">{item.no}</span>
                                                 <span className="ea-mat">
+                                                    <span className="ea-tag ea-tag-no">{item.no}</span>
                                                     <img src={item.srcSmall} srcSet={`${item.srcSmall} 600w, ${item.src} 1200w`} sizes="(max-width: 519px) 45vw, 180px" alt="" loading="lazy" decoding="async" />
+                                                    <span className="ea-tag ea-tag-type">{item.type}</span>
                                                 </span>
                                                 <span className="ea-name">{item.name}</span>
-                                                <span className="ea-meta">{metaLine(item)}</span>
+                                                <span className="ea-meta">{placeLine(item)}</span>
                                             </a>
                                         </li>
                                     ))}
@@ -222,12 +228,14 @@ const CSS = `
 /* Cards: the same as the register's */
 .ea-cards { grid-column: 2 / 4; list-style: none; margin: 20px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--ea-rule); border-left: 1px solid var(--ea-rule); }
 .ea-cards li { display: flex; }
-.ea-cell { display: grid; grid-template-rows: auto auto auto auto; align-content: start; gap: 4px; width: 100%; padding: 10px 10px 12px; border-right: 1px solid var(--ea-rule); border-bottom: 1px solid var(--ea-rule); min-width: 0; }
-.ea-no { font-size: 11px; line-height: 1.4; letter-spacing: 0.03em; color: var(--ea-muted); font-variant-numeric: tabular-nums; }
+.ea-cell { display: grid; grid-template-rows: auto auto auto; align-content: start; gap: 3px; width: 100%; padding: 10px 10px 12px; border-right: 1px solid var(--ea-rule); border-bottom: 1px solid var(--ea-rule); min-width: 0; }
 .ea-mat { position: relative; display: block; aspect-ratio: 1; overflow: hidden; }
-.ea-mat img { position: absolute; inset: 7%; width: 86%; height: 86%; object-fit: contain; mix-blend-mode: multiply; transition: transform 0.2s cubic-bezier(0.44, 0, 0.56, 1); }
+.ea-mat img { position: absolute; inset: 15% 7%; width: 86%; height: 70%; object-fit: contain; mix-blend-mode: multiply; transition: transform 0.2s cubic-bezier(0.44, 0, 0.56, 1); }
 .ea-name, .ea-meta { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ea-name { font-size: 13px; font-weight: 600; line-height: 1.35; letter-spacing: -0.02em; text-underline-offset: 3px; }
+.ea-name { font-size: 13px; font-weight: 600; line-height: 1.3; letter-spacing: -0.02em; text-underline-offset: 3px; white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; height: 2.6em; }
+.ea-tag { position: absolute; left: 0; max-width: 100%; font-size: 10px; line-height: 1.3; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ea-muted); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ea-tag-no { top: 0; }
+.ea-tag-type { bottom: 0; }
 .ea-meta { font-family: "Literata", Georgia, serif; font-size: 12px; line-height: 1.45; color: var(--ea-muted); font-variant-numeric: oldstyle-nums; }
 .ea-cell:hover .ea-mat img { transform: scale(1.04); }
 .ea-cell:hover .ea-name { text-decoration: underline; text-decoration-thickness: 1px; }

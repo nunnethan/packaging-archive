@@ -126,6 +126,11 @@ function metaLine(item: Item) {
     return [item.type, item.country, item.year || "undated"].filter(Boolean).join(" · ")
 }
 
+// The card shows the type on the image's mat, so its own line is place and date.
+function placeLine(item: Item) {
+    return [item.country, item.year || "undated"].filter(Boolean).join(" · ")
+}
+
 function counts<T>(list: T[], key: (t: T) => string) {
     const m = new Map<string, number>()
     for (const t of list) m.set(key(t), (m.get(key(t)) || 0) + 1)
@@ -278,7 +283,6 @@ export default function CollectionRegister(props: Props) {
                 <ul className="cr-grid" aria-hidden="true">
                     {Array.from({ length: 16 }, (_, i) => (
                         <li key={i} className="cr-cell cr-ghost">
-                            <span className="cr-no">&nbsp;</span>
                             <span className="cr-mat" />
                             <span className="cr-name">&nbsp;</span>
                             <span className="cr-meta">&nbsp;</span>
@@ -364,8 +368,8 @@ export default function CollectionRegister(props: Props) {
 function ObjectCell({ item, href }: { item: Item; href: string }) {
     return (
         <a className="cr-cell" href={href} aria-label={`${item.name}, ${metaLine(item)}${item.edition ? `, ${item.edition}` : ""}`}>
-            <span className="cr-no">{item.no}</span>
             <span className="cr-mat">
+                <span className="cr-tag cr-tag-no">{item.no}</span>
                 <OnscreenImg
                     src={item.srcSmall}
                     srcSet={`${item.srcSmall} 600w, ${item.src} 1200w`}
@@ -373,9 +377,10 @@ function ObjectCell({ item, href }: { item: Item; href: string }) {
                     alt=""
                     decoding="async"
                 />
+                <span className="cr-tag cr-tag-type">{item.type}</span>
             </span>
             <span className="cr-name">{item.name}</span>
-            <span className="cr-meta">{metaLine(item)}</span>
+            <span className="cr-meta">{placeLine(item)}</span>
         </a>
     )
 }
@@ -401,13 +406,15 @@ const CSS = `
 .cr-view[aria-pressed="true"] { color: var(--cr-ink) !important; text-decoration: underline; }
 .cr-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: row dense; border-top: 1px solid var(--cr-rule); border-left: 1px solid var(--cr-rule); }
 .cr-cell-li { display: flex; }
-.cr-cell { display: grid; grid-template-rows: auto auto auto auto; align-content: start; gap: 4px; width: 100%; padding: 10px 10px 12px; border-right: 1px solid var(--cr-rule); border-bottom: 1px solid var(--cr-rule); min-width: 0; }
-.cr-no { font-size: 11px; line-height: 1.4; letter-spacing: 0.03em; color: var(--cr-muted); font-variant-numeric: tabular-nums; }
+.cr-cell { display: grid; grid-template-rows: auto auto auto; align-content: start; gap: 3px; width: 100%; padding: 10px 10px 12px; border-right: 1px solid var(--cr-rule); border-bottom: 1px solid var(--cr-rule); min-width: 0; }
 .cr-mat { position: relative; display: block; aspect-ratio: 1; overflow: hidden; }
-.cr-mat img { position: absolute; inset: 7%; width: 86%; height: 86%; object-fit: contain; mix-blend-mode: multiply; opacity: 0; transition: transform 0.2s cubic-bezier(0.44, 0, 0.56, 1), opacity 0.3s ease; }
+.cr-mat img { position: absolute; inset: 15% 7%; width: 86%; height: 70%; object-fit: contain; mix-blend-mode: multiply; opacity: 0; transition: transform 0.2s cubic-bezier(0.44, 0, 0.56, 1), opacity 0.3s ease; }
 .cr .cr-on { opacity: 1; }
 .cr-name, .cr-meta { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cr-name { font-size: 13px; font-weight: 600; line-height: 1.35; letter-spacing: -0.02em; text-underline-offset: 3px; }
+.cr-name { font-size: 13px; font-weight: 600; line-height: 1.3; letter-spacing: -0.02em; text-underline-offset: 3px; white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; height: 2.6em; }
+.cr-tag { position: absolute; left: 0; max-width: 100%; font-size: 10px; line-height: 1.3; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cr-muted); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cr-tag-no { top: 0; }
+.cr-tag-type { bottom: 0; }
 .cr-meta { font-family: "Literata", Georgia, serif; font-size: 12px; line-height: 1.45; color: var(--cr-muted); font-variant-numeric: oldstyle-nums; }
 .cr-cell:hover .cr-mat img { transform: scale(1.04); }
 .cr-cell:hover .cr-name { text-decoration: underline; text-decoration-thickness: 1px; }
