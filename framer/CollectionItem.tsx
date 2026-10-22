@@ -1,10 +1,28 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { addPropertyControls, ControlType, RenderTarget } from "framer"
 
-// The public GitHub repository that holds items.json and the images, served through jsDelivr.
-// Change this one line to point the component somewhere else.
-const REPO = "nunnethan/packaging-archive"
-const BASE = `https://cdn.jsdelivr.net/gh/${REPO}@main/`
+// Items and images come from media.typen.me (Cloudflare R2, kept in sync with
+// the GitHub repository nunnethan/packaging-archive by its GitHub Action). If
+// that fails, the same files load from the repository through jsDelivr.
+const MEDIA = "https://media.typen.me/collection/"
+const FALLBACK = "https://cdn.jsdelivr.net/gh/nunnethan/packaging-archive@main/"
+let BASE = MEDIA
+
+// Fetch one of the archive's JSON files, falling back to jsDelivr; images
+// then come from wherever the data did.
+function getJSON(file: string): Promise<any> {
+    const from = (base: string) =>
+        fetch(base + file, { cache: "no-cache" }).then((r) => {
+            if (!r.ok) throw new Error(`${file}: ${r.status}`)
+            return r.json()
+        })
+    return from(MEDIA).catch(() =>
+        from(FALLBACK).then((data) => {
+            BASE = FALLBACK
+            return data
+        })
+    )
+}
 
 type Item = {
     no: string
@@ -60,9 +78,7 @@ function parseArchive(data: any): Archive {
 let archiveRequest: Promise<Archive> | null = null
 function loadArchive() {
     if (!archiveRequest) {
-        // jsDelivr tells browsers to keep files for a week, so check for a newer copy each visit
-        archiveRequest = fetch(BASE + "items.json", { cache: "no-cache" })
-            .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+        archiveRequest = getJSON("items.json")
             .then(parseArchive)
             .catch(() => {
                 archiveRequest = null
@@ -106,7 +122,7 @@ type Props = {
 
 /**
  * A randomly chosen item from the packaging archive, labelled like a museum
- * object. Items and images load from the GitHub repository in REPO. Renders an
+ * object. Items and images load from media.typen.me (see MEDIA). Renders an
  * empty mat on the server and picks the item after mount, so pre-rendered
  * pages hydrate without mismatches or layout shift.
  *

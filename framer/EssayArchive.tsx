@@ -6,8 +6,28 @@ import { addPropertyControls, ControlType, RenderTarget } from "framer"
 // Items and essays come from the GitHub repository nunnethan/packaging-archive
 // through jsDelivr.
 
-const REPO = "nunnethan/packaging-archive"
-const BASE = `https://cdn.jsdelivr.net/gh/${REPO}@main/`
+// Items and images come from media.typen.me (Cloudflare R2, kept in sync with
+// the GitHub repository nunnethan/packaging-archive by its GitHub Action). If
+// that fails, the same files load from the repository through jsDelivr.
+const MEDIA = "https://media.typen.me/collection/"
+const FALLBACK = "https://cdn.jsdelivr.net/gh/nunnethan/packaging-archive@main/"
+let BASE = MEDIA
+
+// Fetch one of the archive's JSON files, falling back to jsDelivr; images
+// then come from wherever the data did.
+function getJSON(file: string): Promise<any> {
+    const from = (base: string) =>
+        fetch(base + file, { cache: "no-cache" }).then((r) => {
+            if (!r.ok) throw new Error(`${file}: ${r.status}`)
+            return r.json()
+        })
+    return from(MEDIA).catch(() =>
+        from(FALLBACK).then((data) => {
+            BASE = FALLBACK
+            return data
+        })
+    )
+}
 
 type Item = { no: string; name: string; type: string; country: string; year: string; edition: string; src: string; srcSmall: string }
 type Essay = { slug: string; title: string; date: string; standfirst: string; objects: string[]; readingTime: number; draft: boolean }
@@ -57,11 +77,7 @@ function parseEssays(data: any): Essay[] {
 let request: Promise<Archive> | null = null
 function loadArchive(): Promise<Archive> {
     if (!request) {
-        const get = (file: string) =>
-            fetch(BASE + file, { cache: "no-cache" }).then((r) => {
-                if (!r.ok) throw new Error(`${file}: ${r.status}`)
-                return r.json()
-            })
+        const get = getJSON
         request = Promise.all([get("items.json"), get("essays.json").catch(() => ({ essays: [] }))])
             .then(([items, essays]) => ({ items: parseItems(items), essays: parseEssays(essays) }))
             .catch((e) => {

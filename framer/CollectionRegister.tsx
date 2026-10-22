@@ -2,12 +2,31 @@ import { startTransition, useCallback, useEffect, useMemo, useRef, useState } fr
 import { addPropertyControls, ControlType, RenderTarget } from "framer"
 
 // The full collection: every object in the archive on a ruled specimen
-// sheet, or as a ledger. Items come from the GitHub repository
-// nunnethan/packaging-archive through jsDelivr. Images only load once their
+// sheet, or as a ledger. Items come from media.typen.me (see below). Images only load once their
 // card is on screen.
 
-const REPO = "nunnethan/packaging-archive"
-const BASE = `https://cdn.jsdelivr.net/gh/${REPO}@main/`
+// Items and images come from media.typen.me (Cloudflare R2, kept in sync with
+// the GitHub repository nunnethan/packaging-archive by its GitHub Action). If
+// that fails, the same files load from the repository through jsDelivr.
+const MEDIA = "https://media.typen.me/collection/"
+const FALLBACK = "https://cdn.jsdelivr.net/gh/nunnethan/packaging-archive@main/"
+let BASE = MEDIA
+
+// Fetch one of the archive's JSON files, falling back to jsDelivr; images
+// then come from wherever the data did.
+function getJSON(file: string): Promise<any> {
+    const from = (base: string) =>
+        fetch(base + file, { cache: "no-cache" }).then((r) => {
+            if (!r.ok) throw new Error(`${file}: ${r.status}`)
+            return r.json()
+        })
+    return from(MEDIA).catch(() =>
+        from(FALLBACK).then((data) => {
+            BASE = FALLBACK
+            return data
+        })
+    )
+}
 const PAGE = 48
 
 type Item = { no: string; name: string; type: string; country: string; year: string; edition: string; src: string; srcSmall: string; alt: string; sortYear: number }
@@ -50,11 +69,7 @@ function parseItems(data: any): { items: Item[]; size: number | null } {
 let request: Promise<Archive> | null = null
 function loadArchive(): Promise<Archive> {
     if (!request) {
-        const get = (file: string) =>
-            fetch(BASE + file, { cache: "no-cache" }).then((r) => {
-                if (!r.ok) throw new Error(`${file}: ${r.status}`)
-                return r.json()
-            })
+        const get = getJSON
         request = get("items.json")
             .then(parseItems)
             .catch((e) => {
