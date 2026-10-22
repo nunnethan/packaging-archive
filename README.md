@@ -84,24 +84,29 @@ It shows a live preview in the site’s typography, lets you pick objects to lin
 
 ## How changes reach the site
 
-The site loads `items.json` and the images through [jsDelivr](https://www.jsdelivr.com), a free CDN for public GitHub repositories:
+The site loads `items.json`, `essays.json` and the images from **media.typen.me**, a Cloudflare R2 bucket (`typen-media`) on your own domain:
 
 ```
-https://cdn.jsdelivr.net/gh/nunnethan/packaging-archive@main/items.json
+https://media.typen.me/collection/items.json
+https://media.typen.me/collection/images/MCDPKG0747-600.webp
 ```
 
-jsDelivr caches files from a branch for up to 12 hours. After each push, the **Check and publish** GitHub Action rebuilds `essays.json`, validates everything and clears jsDelivr’s cache for the files that changed, so edits usually appear within a few minutes.
+After each push, the **Check and publish** GitHub Action rebuilds `essays.json`, validates everything and copies `items.json`, `essays.json` and `images/` to the bucket (images deleted here are deleted there too). `items.json` and `essays.json` are cached for a minute and images for a day, so edits appear within a minute or so. The upload uses three repository secrets, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID` and `R2_SECRET_ACCESS_KEY` (an R2 API token with Object Read & Write on `typen-media`); without them the step is skipped.
+
+If media.typen.me ever fails, the site falls back to the same files straight from this repository through [jsDelivr](https://www.jsdelivr.com) (`https://cdn.jsdelivr.net/gh/nunnethan/packaging-archive@main/…`), whose cache the Action also clears.
+
+The same bucket holds files that aren't part of the archive, outside `collection/`: the Cowsey explainer videos and the CV. Upload or replace those in the Cloudflare dashboard (R2 › typen-media).
 
 Object pages (`/collection/object?no=mcdpkg0747`) read `items.json` directly, so they update with the grid. Essay pages live in the Framer CMS, in the Essays collection; the site’s plan allows two CMS collections, and the other is Projects. The same Action copies the essays into that collection and publishes typen.me when something changed. Don’t edit the Essays collection in Framer: the next sync overwrites it. The Action needs a Framer API key, stored once as a repository secret:
 
 1. In Framer, open Site settings › API Keys and create a key.
 2. Run `gh secret set FRAMER_API_KEY -R nunnethan/packaging-archive` and paste the key.
 
-Without the key, the Collection grid and object pages still update, but essay pages don’t. You can also sync by hand: `FRAMER_API_KEY=… npm run sync -- --publish`. Publishing puts any other unpublished Framer changes live too. If the check fails (look for a red cross on the commit), fix the problem and push again; the site keeps showing what it last loaded successfully until the cache is cleared.
+Without the key, the Collection grid and object pages still update, but essay pages don’t. You can also sync by hand: `FRAMER_API_KEY=… npm run sync -- --publish`. Publishing puts any other unpublished Framer changes live too. If the check fails (look for a red cross on the commit), fix the problem and push again; the site keeps showing what it last loaded successfully.
 
 If `items.json` can’t be loaded at all, the site shows the empty mat with no item, rather than an error.
 
-The site checks for a new `items.json` on every visit, but browsers keep images for up to a week. **To replace an image, give the new file a new name** (for example `images/MCDPKG0123-v2-1200.webp`) and update `items.json` to point to it, instead of overwriting the old file.
+The site checks for a new `items.json` on every visit, but browsers and Cloudflare keep images for up to a day. **To replace an image, give the new file a new name** (for example `images/MCDPKG0123-v2-1200.webp`) and update `items.json` to point to it, instead of overwriting the old file.
 
 ## Rights
 
