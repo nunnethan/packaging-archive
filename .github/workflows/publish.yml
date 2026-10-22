@@ -55,7 +55,7 @@ jobs:
           FRAMER_API_KEY: ${{ secrets.FRAMER_API_KEY }}
         run: |
           if [ -z "$FRAMER_API_KEY" ]; then
-            echo "::notice::FRAMER_API_KEY isn't set, so object and essay pages weren't updated. See the README."
+            echo "::notice::FRAMER_API_KEY isn't set, so essay pages weren't updated. See the README."
             exit 0
           fi
           node scripts/sync-framer.mjs --publish
